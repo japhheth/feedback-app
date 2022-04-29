@@ -1,0 +1,7 @@
+{
+    "nuxt.isNuxtApp": false,
+    "emmet.includeLanguages": {
+        "javascript": "javascriptreact"
+      },
+      "emmet.triggerExpansionOnTab": true
+}
