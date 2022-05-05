@@ -1,17 +1,32 @@
-import PropTypes from 'prop-types';
+import { AnimatePresence, motion } from "framer-motion";
+import PropTypes from "prop-types";
 import FeedbackItem from "./FeedbackItem";
-
 
 const FeedbackList = ({ feedback, deleteHandler }) => {
   if (!feedback || feedback.length === 0) {
     return <p>No Feedback Yet</p>;
   }
-  
+
   return (
     <div className="feedback-list">
-      {feedback.map((item) => (
-        <FeedbackItem rating={item.rating} text={item.text} key={item.id} id={item.id} handleDelete={deleteHandler}/>
-      ))}
+      <AnimatePresence>
+        {feedback.map((item) => (
+          <motion.div
+            key={item.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <FeedbackItem
+              rating={item.rating}
+              text={item.text}
+              key={item.id}
+              id={item.id}
+              handleDelete={deleteHandler}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
@@ -19,11 +34,11 @@ const FeedbackList = ({ feedback, deleteHandler }) => {
 FeedbackList.propTypes = {
   feedback: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.number,
+      id: PropTypes.any,
       rating: PropTypes.number,
-      text: PropTypes.string
+      text: PropTypes.string,
     })
-  )
-}
+  ),
+};
 
 export default FeedbackList;
