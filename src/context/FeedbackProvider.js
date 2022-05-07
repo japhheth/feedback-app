@@ -1,37 +1,50 @@
-import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FeedbackContext } from "./FeedbackContext";
 
 const FeedbackProvider = ({ children }) => {
-  const [feedback, setFeedback] = useState([
-    {
-      id: 1,
-      rating: 8,
-      text: "This is feedback item 1",
-    },
-    {
-      id: 2,
-      rating: 10,
-      text: "This is feedback item 2",
-    },
-    {
-      id: 3,
-      rating: 4,
-      text: "This is feedback item 3",
-    },
-  ]);
-
+  const [feedback, setFeedback] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [feedbackEdit, setFeedbackEdit] = useState({ item: {}, edit: false });
 
-  const deleteFeedbackHandler = (id) => {
+  // Fetch feedback
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
+
+  const fetchFeedback = async () => {
+    const response = await fetch("/feedback?_sort=rating&_order=asc");
+    const data = await response.json();
+
+    setFeedback(data);
+    setIsLoading(false);
+  };
+
+  const deleteFeedbackHandler = async (id) => {
     if (window.confirm("Are you sure you want to delete this feedback ?")) {
-      setFeedback(feedback.filter((item) => item.id !== id));
+      const response = await fetch(`/feedback/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!Object.entries(data).length) {
+        setFeedback(feedback.filter((item) => item.id !== id));
+      }
     }
   };
 
-  const addFeedbackHandler = (newFeedback) => {
-    newFeedback.id = uuidv4();
-    setFeedback([newFeedback, ...feedback]);
+  const addFeedbackHandler = async (newFeedback) => {
+    const response = await fetch("/feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newFeedback),
+    });
+
+    const data = await response.json();
+
+    setFeedback([data, ...feedback]);
   };
 
   const editFeedbackHandler = (item) => {
@@ -41,11 +54,19 @@ const FeedbackProvider = ({ children }) => {
     });
   };
 
-  const updateFeedbackHandler = (id, updatedItem) => {
+  const updateFeedbackHandler = async (id, updatedItem) => {
+    const response = await fetch(`/feedback/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedItem),
+    });
+
+    const data = await response.json();
+
     setFeedback(
-      feedback.map((item) =>
-        item.id === id ? { ...item, ...updatedItem } : item
-      )
+      feedback.map((item) => (item.id === id ? { ...item, ...data } : item))
     );
     setFeedbackEdit({ item: {}, edit: false });
   };
@@ -59,6 +80,7 @@ const FeedbackProvider = ({ children }) => {
         editFeedbackHandler,
         feedbackEdit,
         updateFeedbackHandler,
+        isLoading,
       }}
     >
       {children}
